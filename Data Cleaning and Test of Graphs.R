@@ -1,12 +1,3 @@
-#Loading AirBnb NYC 2019 Data
-setwd("C:/Users/Daniel/Dropbox/Data Science/NYC DSA/R/Exploratory Visualization and Shiny Project/AirBnB-NYC-2019-Visualization-Project")
-airbnb_data = read.csv(file = './AB_NYC_2019.csv')
-
-#Understanding the data
-names(airbnb_data)
-str(airbnb_data)
-summary(airbnb_data)
-
 ##############################################
 #About libraries used
 
@@ -20,6 +11,21 @@ library(treemapify) # Allows easy creation of Treemap graph
 library(scales) #Allows easily labeling of axis. Example:
 #scale_x_continuous(labels = unit_format(unit = "K", scale = 1e-3))
 library(lubridate) #Allows easy extraction of day, month, year
+
+#Loading AirBnb 2015-2020 Data into a single dataframe and adding a column
+#to identify which year the observation belongs to
+setwd("C:/Users/Daniel/Dropbox/Data Science/NYC DSA/R/Exploratory Visualization and Shiny Project/AirBnB-NYC-2019-Visualization-Project")
+
+airbnb_data = read.csv(file = './listings 2019.csv')
+
+airbnb_data = purrr::map_dfr(list.files(pattern="*.csv", full.names = TRUE),
+               ~read.csv(.x) %>% mutate(year = sub(".csv$", "", basename(.x)),
+                                        year = sub("listings", "", year)))
+
+#Understanding the data
+names(airbnb_data)
+str(airbnb_data)
+summary(airbnb_data)
 
 
 ##############################################
@@ -52,7 +58,7 @@ as.vector(airbnb_data$price)
 
 #Heatmap optimized for price of listings
 
-quantile(airbnb_data$price, c(0.98))
+quant_98_price_max = as.numeric(quantile(airbnb_data$price, c(0.98)))
 
 map  %>%
   addHeatmap( #Adds a heatmap
@@ -60,14 +66,14 @@ map  %>%
     lat =  airbnb_data$latitude,
     intensity = airbnb_data$price,
     blur = 2,
-    max = 550,
+    max = quant_98_price_max,
     cellSize = 3,
     radius = 2
   )
 
 #Heatmap optimized for price of listings
 
-quantile(airbnb_data$reviews_per_month, c(0.95), na.rm = T)
+quant_98_review_max = as.numeric(quantile(airbnb_data$reviews_per_month, c(0.95), na.rm = T))
 
 map  %>%
   addHeatmap( #Adds a heatmap
@@ -75,7 +81,7 @@ map  %>%
     lat =  airbnb_data$latitude,
     intensity = airbnb_data$reviews_per_month,
     blur = 1,
-    max = 4.64,
+    max = quant_98_review_max,
     cellSize = 2,
     radius = 2
   )
@@ -85,7 +91,7 @@ map  %>%
 #price per night, and reviews per month. 
 
 #Treemap graph for number of listing comparing neighborhood_group and
-#neighboorhood
+#neighboorhood and price per night
 
 #Organize the data
 
@@ -103,10 +109,12 @@ ggplot(treemap_data, aes(area = total_listings, fill = avg_price,
   geom_treemap_subgroup_border() +
   geom_treemap_subgroup_text(place = "centre", grow = T, alpha = 0.6, colour =
                                "black", fontface = "italic", min.size = 0) +
-  geom_treemap_text(colour = "grey78", place = "topleft", reflow = T) +
+  geom_treemap_text(colour = "grey81", place = "topleft", reflow = T) +
   scale_fill_gradient2(low="white", mid="yellow", high="red", midpoint = 170,
                        limits = c(80, 400), oob = scales::squish) +
-  labs(fill = "Average Price")
+  labs(fill = "Price per Night")
+
+
   
   
 
