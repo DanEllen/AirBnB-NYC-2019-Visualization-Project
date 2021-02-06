@@ -16,17 +16,36 @@ library(lubridate) #Allows easy extraction of day, month, year
 #to identify which year the observation belongs to
 setwd("C:/Users/Daniel/Dropbox/Data Science/NYC DSA/R/Exploratory Visualization and Shiny Project/AirBnB-NYC-2019-Visualization-Project")
 
-airbnb_data = read.csv(file = './listings 2019.csv')
-
 airbnb_data = purrr::map_dfr(list.files(pattern="*.csv", full.names = TRUE),
                ~read.csv(.x) %>% mutate(year = sub(".csv$", "", basename(.x)),
-                                        year = sub("listings", "", year)))
+                                        year = sub("listings ", "", year),
+                                        year = as.factor(year)))
 
 #Understanding the data
 names(airbnb_data)
 str(airbnb_data)
 summary(airbnb_data)
 
+
+#Getting a data frame for each year to use in graphs as needed
+
+airbnb_data2015 = airbnb_data %>% 
+  filter(year == '2015')
+
+airbnb_data2016 = airbnb_data %>% 
+  filter(year == '2016')
+
+airbnb_data2017 = airbnb_data %>% 
+  filter(year == '2017')
+
+airbnb_data2018 = airbnb_data %>% 
+  filter(year == '2018')
+
+airbnb_data2019 = airbnb_data %>% 
+  filter(year == '2019')
+
+airbnb_data2020 = airbnb_data %>% 
+  filter(year == '2020')
 
 ##############################################
 #1 Map with options to see density (heat map) based number of listings, 
@@ -40,8 +59,8 @@ map = leaflet() %>% addProviderTiles(providers$CartoDB.Voyager)
 
 map  %>%
   addHeatmap( #Adds a heatmap
-    lng =  airbnb_data$longitude,
-    lat =  airbnb_data$latitude,
+    lng =  airbnb_data2020$longitude,
+    lat =  airbnb_data2020$latitude,
     blur = 8,
     intensity = NULL,
     max = 50,
@@ -49,22 +68,22 @@ map  %>%
     radius = 5
   )  %>%
   addMarkers( #Adds markets in clusters. Have this as an option in Shiny
-    lng = airbnb_data$longitude,
-    lat = airbnb_data$latitude,
-    label = airbnb_data$host_id,
+    lng = airbnb_data2020$longitude,
+    lat = airbnb_data2020$latitude,
+    label = airbnb_data2020$host_id,
     clusterOptions = markerClusterOptions()
   )
-as.vector(airbnb_data$price)
+as.vector(airbnb_data2020$price)
 
 #Heatmap optimized for price of listings
 
-quant_98_price_max = as.numeric(quantile(airbnb_data$price, c(0.98)))
+quant_98_price_max = as.numeric(quantile(airbnb_data2020$price, c(0.98)))
 
 map  %>%
   addHeatmap( #Adds a heatmap
-    lng =  airbnb_data$longitude,
-    lat =  airbnb_data$latitude,
-    intensity = airbnb_data$price,
+    lng =  airbnb_data2020$longitude,
+    lat =  airbnb_data2020$latitude,
+    intensity = airbnb_data2020$price,
     blur = 2,
     max = quant_98_price_max,
     cellSize = 3,
@@ -73,13 +92,13 @@ map  %>%
 
 #Heatmap optimized for price of listings
 
-quant_98_review_max = as.numeric(quantile(airbnb_data$reviews_per_month, c(0.95), na.rm = T))
+quant_98_review_max = as.numeric(quantile(airbnb_data2020$reviews_per_month, c(0.95), na.rm = T))
 
 map  %>%
   addHeatmap( #Adds a heatmap
-    lng =  airbnb_data$longitude,
-    lat =  airbnb_data$latitude,
-    intensity = airbnb_data$reviews_per_month,
+    lng =  airbnb_data2020$longitude,
+    lat =  airbnb_data2020$latitude,
+    intensity = airbnb_data2020$reviews_per_month,
     blur = 1,
     max = quant_98_review_max,
     cellSize = 2,
@@ -95,7 +114,8 @@ map  %>%
 
 #Organize the data
 
-treemap_data = airbnb_data %>% 
+treemap_data1 = airbnb_data %>% 
+  filter(year == "2020") %>% 
   group_by(neighbourhood, neighbourhood_group) %>% 
   summarize(total_listings = n(), avg_price = mean(price))
 
@@ -114,7 +134,15 @@ ggplot(treemap_data, aes(area = total_listings, fill = avg_price,
                        limits = c(80, 400), oob = scales::squish) +
   labs(fill = "Price per Night")
 
+#Treemap graph for size of offering (listing by days available by price)
+#comparing neighborhood_group, neighboorhood, and avg reviews per month
 
+#Organize the data
+
+treemap_data1 = airbnb_data %>% 
+  filter(year == "2020") %>% 
+  group_by(neighbourhood, neighbourhood_group) %>% 
+  summarize(total_listings = n(), avg_price = mean(price))
   
   
 
