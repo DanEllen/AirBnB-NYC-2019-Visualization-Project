@@ -12,6 +12,10 @@ library(scales) #Allows easily labeling of axis. Example:
 #scale_x_continuous(labels = unit_format(unit = "K", scale = 1e-3))
 library(lubridate) #Allows easy extraction of day, month, year
 
+##Load workspace
+
+load ("C:/Users/Daniel/Dropbox/Data Science/NYC DSA/R/Exploratory Visualization and Shiny Project/AirBnB-NYC-2019-Visualization-Project/.RData")
+
 #Loading AirBnb 2015-2020 Data into a single dataframe and adding a column
 #to identify which year the observation belongs to
 setwd("C:/Users/Daniel/Dropbox/Data Science/NYC DSA/R/Exploratory Visualization and Shiny Project/AirBnB-NYC-2019-Visualization-Project")
@@ -80,8 +84,18 @@ summary(airbnb_data2020$reviews_this_year)
 #Creating column to calculate market size by multiplying available days by
 #average price.
 
-airbnb_data2020 = airbnb_data2020 %>% 
-  mutate(availability_by_price = availability_365 * price)
+market_size_func = function(dataframe) {
+  dataframe %>% 
+    mutate(availability_by_price = availability_365 * price)
+}
+
+airbnb_data = market_size_func(airbnb_data)
+airbnb_data2015 = market_size_func(airbnb_data2015)
+airbnb_data2016 = market_size_func(airbnb_data2016)
+airbnb_data2017 = market_size_func(airbnb_data2017)
+airbnb_data2018 = market_size_func(airbnb_data2018)
+airbnb_data2019 = market_size_func(airbnb_data2019)
+airbnb_data2020 = market_size_func(airbnb_data2020)
 
 ##############################################
 #1 Map with options to see density (heat map) based number of listings, 
@@ -98,11 +112,10 @@ map  %>%
   addHeatmap( #Adds a heatmap
     lng =  airbnb_data2020$longitude,
     lat =  airbnb_data2020$latitude,
-    blur = 8,
+    blur = 4,
     intensity = NULL,
-    max = 50,
-    cellSize = 7,
-    radius = 5
+    cellSize = 1,
+    radius = 1
   )  %>%
   addMarkers( #Adds markets in clusters. Have this as an option in Shiny
     lng = airbnb_data2020$longitude,
@@ -222,14 +235,88 @@ ggplot(treemap_data3, aes(area = market_size,
                        limits = c(0, 0.1),
                        oob = scales::squish) +
   labs(fill = "RPLD",
-       title = 'Treemap of Market Size by Neighbourhood \nand Reviews per Listing Days Heatmap') +
+       title = 'Market Size by Neighbourhood \nand Reviews per Listing Days Heatmap') +
   theme(legend.position="none", plot.title = element_text(hjust = 0.5))
 
 
-#Bar plot of the largest neighbourhoods by market size and by number of reviews
+#Dot plot of neighbourhoods and RPLD ratio for top N neigh... and point size
+#based on market size. Point label shows market size in $ and % of total.
 
-cor(treemap_data3$market_size, treemap_data3$total_reviews)
+#Creating the table needed for the scatterplot
 
-#Bar plot of the neighbourhoods with largest reviews per listing days ratio
+total_market_size_2020 = sum(airbnb_data2020$availability_by_price)
+market_size_filter = 1000000
 
+scatter_plot_data = airbnb_data2020 %>% 
+  group_by(neighbourhood) %>%
+  summarize(market_size = sum(availability_by_price),
+            total_listingdays = sum(availability_365),
+            total_reviews = sum(reviews_this_year),
+            reviews_per_listingdays = total_reviews/total_listingdays,
+            market_share = market_size / total_market_size_2020) %>% 
+  mutate(market_share = as.numeric(format(round(market_share, 4), nsmall = 2))) %>% 
+  filter(market_size>market_size_filter) %>%
+  top_n(n = 15, wt = reviews_per_listingdays) %>% 
+  arrange(desc(reviews_per_listingdays))
 
+#Graphing
+
+ggplot(scatter_plot_data, aes(x = reorder(neighbourhood, reviews_per_listingdays) ,
+                              y = reviews_per_listingdays,
+                              label = scales::percent(market_share),
+                              size = market_size)) + 
+  geom_point(col="tomato2")  +
+  geom_segment(aes(x = neighbourhood, 
+                   xend = neighbourhood, 
+                   y = min(reviews_per_listingdays), 
+                   yend = max(reviews_per_listingdays)), 
+               linetype = "dashed", 
+               size = 0.1,
+               alpha = 0.2) +
+  #ylim(-2.5, 2.5) +
+  labs(title="Ratio of Reviews per Listing Days", 
+       subtitle="Top 15 Neighbourhoods",
+       y = "Reviews per Listing Days",
+       size = "Market Size") +  
+  theme_classic() +
+  theme(axis.title.y = element_blank()) +
+  scale_size(labels = scales::unit_format(unit = "M", scale = 1e-6)) +
+  coord_flip()
+
+#Bar graph of market size by neighborhood_group over time
+
+#Getting the dataframe for the graph
+
+market_size_years = airbnb_data %>% 
+  group_by(year, neighbourhood_group) %>% 
+  summarize(market_size = sum(availability_by_price))
+
+#Graph
+
+ggplot(market_size_years, aes(x = year, y = market_size)) +
+  geom_bar(stat = 'identity',
+           aes(fill = reorder(neighbourhood_group, market_size))) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) +
+  labs(title="Market Size Over Time", 
+       subtitle="Divided by Neighbourhoods",
+       y = 'Market Size',
+       x = 'Year' ,
+       fill = "Neighbourhood Group") +
+  theme_classic() +
+  scale_y_continuous(labels = scales::unit_format(unit = "M", scale = 1e-6)) +
+  scale_fill_brewer(palette="Reds") #Colors for neighbourhood group
+
+#Line graph of average availability, average price, and number of listings
+#over time (Maybe do facet wrap??)
+
+#Bar graph of number of reviews over time. Comment correlation between listing
+#days and number of reviews
+
+cor(treemap_data3$total_listingdays, treemap_data3$total_reviews)
+
+#Bar graph filled of market size composition by room_type over time
+
+#Line graph of avg Reviews per Listing Days total and per neighbourhood_group
+#over time
+
+#Line graph of average price total and per neighborhood_group over time
