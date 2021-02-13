@@ -11,6 +11,7 @@ library(treemapify) # Allows easy creation of Treemap graph
 library(scales) #Allows easily labeling of axis. Example:
 #scale_x_continuous(labels = unit_format(unit = "K", scale = 1e-3))
 library(lubridate) #Allows easy extraction of day, month, year
+library(directlabels) #Allows labels on ggplot graphs
 
 ##Load workspace
 
@@ -181,7 +182,8 @@ ggplot(treemap_data1, aes(area = listing_days, fill = avg_price,
   geom_treemap_text(colour = "grey81", place = "topleft", reflow = T) +
   scale_fill_gradient2(low="white", mid="yellow", high="red", midpoint = 170,
                        limits = c(80, 400), oob = scales::squish) +
-  labs(fill = "Price per Night")
+  labs(fill = "Price per Night",
+       title = 'Number of Listings by Neighbourhood\nand Price Heatmap')
 
 #Treemap graph for market size comparing neighborhood_group and
 #neighboorhood and price per night
@@ -205,7 +207,8 @@ ggplot(treemap_data2, aes(area = market_size, fill = avg_price,
   geom_treemap_text(colour = "grey81", place = "topleft", reflow = T) +
   scale_fill_gradient2(low="white", mid="yellow", high="red", midpoint = 170,
                        limits = c(80, 400), oob = scales::squish) +
-  labs(fill = "Price per Night")
+  labs(fill = "Price per Night",
+       title = 'Market Size by Neighbourhood\nand Price Heatmap')
 
 #Treemap graph for size of offering (listing by days available by price)
 #comparing neighborhood_group, neighboorhood, and avg reviews per month
@@ -235,8 +238,8 @@ ggplot(treemap_data3, aes(area = market_size,
                        limits = c(0, 0.1),
                        oob = scales::squish) +
   labs(fill = "RPLD",
-       title = 'Market Size by Neighbourhood \nand Reviews per Listing Days Heatmap') +
-  theme(legend.position="none", plot.title = element_text(hjust = 0.5))
+       title = 'Market Size by Neighbourhood and\nReviews per Listing Days Heatmap') +
+  theme(legend.position="none", plot.title = element_text(hjust = 0.0))
 
 
 #Dot plot of neighbourhoods and RPLD ratio for top N neigh... and point size
@@ -297,7 +300,7 @@ ggplot(market_size_years, aes(x = year, y = market_size)) +
   geom_bar(stat = 'identity',
            aes(fill = reorder(neighbourhood_group, market_size))) + 
   theme(axis.text.x = element_text(angle=65, vjust=0.6)) +
-  labs(title="Market Size Over Time", 
+  labs(title="Market Size (Supply) Over Time", 
        subtitle="Divided by Neighbourhoods",
        y = 'Market Size',
        x = 'Year' ,
@@ -309,10 +312,56 @@ ggplot(market_size_years, aes(x = year, y = market_size)) +
 #Line graph of average availability, average price, and number of listings
 #over time (Maybe do facet wrap??)
 
-#Bar graph of number of reviews over time. Comment correlation between listing
-#days and number of reviews
+data_frame0 = airbnb_data %>% 
+  group_by(year) %>% 
+  summarize(avg_avail = mean(availability_365),
+            avg_price = mean(price),
+            listings = n())
+
+data_frame$listings/200
+
+ggplot(data_frame0, aes(x = year)) +
+  geom_line(aes(y = avg_avail, group = 1, colour = 'Avg. Availability'),
+            size = 1.5)+
+  geom_line(aes(y = avg_price, group = 1, colour = 'Avg. Price'),
+            size = 1.5)+
+  geom_line(aes(y = (listings/200), group = 1, colour = 'Listings'),
+            size = 1.5)+
+  scale_y_continuous(name = "Price and Availability",
+                     sec.axis = sec_axis(~.*200, name="Listings",
+                                         labels = scales::unit_format(unit = "k", scale = 1e-3),
+                                         breaks = seq(0,55000, by = 5000)),
+                     limits=c(100,260),
+                     breaks = seq(0, 250, by = 25),) +
+  labs(title="Variables of Market Size",
+       subtitle = "Evolution over Years",
+       x = 'Year',
+       colour = "Legend") +
+  scale_color_manual(values = c("Avg. Availability" = "gold1",
+                                "Avg. Price" = "orange1",
+                                "Listings" = "red2")) +
+  theme_classic() 
+
+
+#Bar graph of total reviews by neighborhood_group over time
+
+#Organizing the data
+
+
+#Scatterplot of number of reviews and listingdays by neighbourhood and year.
+#Comment correlation between listing days and number of reviews.
 
 cor(treemap_data3$total_listingdays, treemap_data3$total_reviews)
+
+#Organizing the data
+
+data_frame1 = airbnb_data %>% 
+  group_by(neighbourhood, year) %>% 
+  summarize(total_reviews = sum(reviews_this_year))
+
+#Plot the graph
+
+ggplot(data_frame1, aes(x = year))
 
 #Bar graph filled of market size composition by room_type over time
 
