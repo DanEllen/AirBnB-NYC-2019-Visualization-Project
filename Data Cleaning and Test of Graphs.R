@@ -12,6 +12,7 @@ library(scales) #Allows easily labeling of axis. Example:
 #scale_x_continuous(labels = unit_format(unit = "K", scale = 1e-3))
 library(lubridate) #Allows easy extraction of day, month, year
 library(directlabels) #Allows labels on ggplot graphs
+library(wesanderson) #Color palettes
 
 ##Load workspace
 
@@ -60,27 +61,48 @@ airbnb_data2019 = airbnb_data %>%
 airbnb_data2020 = airbnb_data %>% 
   filter(year == '2020')
 
+#Getting the reviews for that year by subtracting the reviews the past year.
+#If there is no ID for that property last year it keeps the reviews (we assume
+#its the first year of operation for that property).
+#Setting reviews to 0 when the number comes out negative 9 which doesn't make
+#sense and happens in less than 0.3% of cases in 2020. 
 
-#Getting the reviews for that year by substracting the reviews the past year.
-#Setting reviews to 0 when the number comes out negative 9 which dosent make
-#sense and happens in less than 0.3% of cases. 
+get_reviews = function(df1, df2) {
+  ### Get the number of reviews this year by susbtracting last years
+  ### when there is no ID last year it just keeps the number of reviews.
+  ### If the number comes negative it makes it 0, it happens in very few cases.
+  
+  df1$reviews_this_year = 
+    df1$number_of_reviews - 
+    df2$number_of_reviews[match(df1$id, df2$id)] 
+  
+  df1$reviews_this_year =
+    ifelse(is.na(df1$reviews_this_year),
+           df1$number_of_reviews,
+           df1$reviews_this_year)
+  
+  df1$reviews_this_year =
+    ifelse(df1$reviews_this_year < 0,
+           0,
+           df1$reviews_this_year)
+  return(df1$reviews_this_year)
+}
 
-airbnb_data2020$reviews_this_year = 
-  airbnb_data2020$number_of_reviews - 
-  airbnb_data2019$number_of_reviews[match
-                                    (airbnb_data2020$id, airbnb_data2019$id)] 
+airbnb_data2020$reviews_this_year = get_reviews(airbnb_data2020, airbnb_data2019)
+airbnb_data2019$reviews_this_year = get_reviews(airbnb_data2019, airbnb_data2018)
+airbnb_data2018$reviews_this_year = get_reviews(airbnb_data2018, airbnb_data2017)
+airbnb_data2017$reviews_this_year = get_reviews(airbnb_data2017, airbnb_data2016)
+airbnb_data2016$reviews_this_year = get_reviews(airbnb_data2016, airbnb_data2015)
+airbnb_data2015$reviews_this_year = airbnb_data2015$number_of_reviews
 
-airbnb_data2020$reviews_this_year =
-  ifelse(is.na(airbnb_data2020$reviews_this_year),
-         airbnb_data2020$number_of_reviews,
-         airbnb_data2020$reviews_this_year)
+#Creating one dataframe that contains all the yearly data
 
-airbnb_data2020$reviews_this_year =
-  ifelse(airbnb_data2020$reviews_this_year < 0,
-         0,
-         airbnb_data2020$reviews_this_year)
-
-summary(airbnb_data2020$reviews_this_year)
+airbnb_data = do.call("rbind", list(airbnb_data2020,
+                                    airbnb_data2019,
+                                    airbnb_data2018,
+                                    airbnb_data2017,
+                                    airbnb_data2016,
+                                    airbnb_data2015))
 
 #Creating column to calculate market size by multiplying available days by
 #average price.
@@ -318,8 +340,6 @@ data_frame0 = airbnb_data %>%
             avg_price = mean(price),
             listings = n())
 
-data_frame$listings/200
-
 ggplot(data_frame0, aes(x = year)) +
   geom_line(aes(y = avg_avail, group = 1, colour = 'Avg. Availability'),
             size = 1.5)+
@@ -343,29 +363,97 @@ ggplot(data_frame0, aes(x = year)) +
   theme_classic() 
 
 
+
 #Bar graph of total reviews by neighborhood_group over time
 
 #Organizing the data
 
+data_frame1 = airbnb_data %>% 
+  group_by(year, neighbourhood_group) %>% 
+  summarise(reviews_that_year = sum(reviews_this_year))
 
-#Scatterplot of number of reviews and listingdays by neighbourhood and year.
-#Comment correlation between listing days and number of reviews.
+#Ploting the graph
 
-cor(treemap_data3$total_listingdays, treemap_data3$total_reviews)
+ggplot(data_frame1, aes(x = year, y = reviews_that_year)) +
+  geom_bar(stat = 'identity',
+           aes(fill = reorder(neighbourhood_group, reviews_that_year))) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) +
+  labs(title="Number of Reviews (Demand) Over Time", 
+       subtitle="Divided by Neighbourhoods",
+       y = 'Reviews',
+       x = 'Year' ,
+       fill = "Neighbourhood Group") +
+  theme_classic() +
+  scale_y_continuous(labels = scales::unit_format(unit = "k", scale = 1e-3)) +
+  scale_fill_brewer(palette="Reds") #Colors for neighbourhood group
+
+#Bar graph filled of market size composition by room_type over time
 
 #Organizing the data
 
-data_frame1 = airbnb_data %>% 
-  group_by(neighbourhood, year) %>% 
-  summarize(total_reviews = sum(reviews_this_year))
+data_frame2 = airbnb_data %>% 
+  group_by(room_type, year) %>% 
+  summarize(market_by_roomtype = sum(availability_by_price))
 
-#Plot the graph
+#Ploting the graph
 
-ggplot(data_frame1, aes(x = year))
-
-#Bar graph filled of market size composition by room_type over time
+ggplot(data_frame2, aes(x = year, y = market_by_roomtype)) +
+  geom_bar(stat = 'identity', position = 'fill',
+           aes(fill = reorder(room_type, market_by_roomtype))) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) +
+  labs(title = "Supply Distribuition by Room Type", 
+       y = NULL,
+       x = 'Year' ,
+       fill = "Room Type") +
+  theme_classic() +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_brewer(palette="Spectral") #Colors for neighbourhood group
 
 #Line graph of avg Reviews per Listing Days total and per neighbourhood_group
 #over time
 
+#Order data
+
+data_frame3 = airbnb_data %>% 
+  group_by(neighbourhood_group, year) %>%
+  summarize(total_listingdays = sum(availability_365),
+            total_reviews = sum(reviews_this_year),
+            reviews_per_listingdays = total_reviews/total_listingdays) %>% 
+  arrange(desc(reviews_per_listingdays))
+
+#Graph
+
+ggplot(data_frame3, aes(x = year, y = reviews_per_listingdays,
+           group = neighbourhood_group,
+           color = neighbourhood_group)) +
+  geom_line(size = 0.8) +
+  scale_color_brewer(palette = "Set1") +
+  labs(title = "Reviews per Listing Days Ratio",
+       subtitle = 'Over Time by Neighbourhood Group',
+       y = 'Reviews Per Listing Days',
+       x = 'Year',
+       color = 'Neighbourhood')+
+  theme_classic()
+
 #Line graph of average price total and per neighborhood_group over time
+
+#Gathering data
+
+data_frame4 = airbnb_data %>% 
+  group_by(year, neighbourhood_group) %>% 
+  summarize(avg_price = weighted.mean(price, availability_365)) #weighted by the
+#available days in the year.
+
+#Graph
+
+ggplot(data_frame4, aes(x = year, y = avg_price,
+                        group = neighbourhood_group,
+                        color = neighbourhood_group)) +
+  geom_line(size = 0.8) +
+  scale_color_brewer(palette = "Set1") +
+  labs(title = "Average Price per Night",
+       subtitle = 'Over Time by Neighbourhood Group',
+       y = 'Avg. Price',
+       x = 'Year',
+       color = 'Neighbourhood')+
+  theme_classic()
