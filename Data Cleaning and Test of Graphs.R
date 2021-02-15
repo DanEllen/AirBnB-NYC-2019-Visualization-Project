@@ -11,8 +11,6 @@ library(treemapify) # Allows easy creation of Treemap graph
 library(scales) #Allows easily labeling of axis. Example:
 #scale_x_continuous(labels = unit_format(unit = "K", scale = 1e-3))
 library(lubridate) #Allows easy extraction of day, month, year
-library(directlabels) #Allows labels on ggplot graphs
-library(wesanderson) #Color palettes
 
 ##Load workspace
 
@@ -95,6 +93,7 @@ airbnb_data2017$reviews_this_year = get_reviews(airbnb_data2017, airbnb_data2016
 airbnb_data2016$reviews_this_year = get_reviews(airbnb_data2016, airbnb_data2015)
 airbnb_data2015$reviews_this_year = airbnb_data2015$number_of_reviews
 
+
 #Creating one dataframe that contains all the yearly data
 
 airbnb_data = do.call("rbind", list(airbnb_data2020,
@@ -131,32 +130,34 @@ map = leaflet() %>% addProviderTiles(providers$CartoDB.Voyager)
 
 #Heatmap optimized for number of listings
 
+year0 = airbnb_data2020
+
 map  %>%
   addHeatmap( #Adds a heatmap
-    lng =  airbnb_data2020$longitude,
-    lat =  airbnb_data2020$latitude,
+    lng =  year0$longitude,
+    lat =  year0$latitude,
     blur = 4,
     intensity = NULL,
     cellSize = 1,
     radius = 1
   )  %>%
   addMarkers( #Adds markets in clusters. Have this as an option in Shiny
-    lng = airbnb_data2020$longitude,
-    lat = airbnb_data2020$latitude,
-    label = airbnb_data2020$host_id,
+    lng = year0$longitude,
+    lat = year0$latitude,
+    label = year0$host_id,
     clusterOptions = markerClusterOptions()
   )
-as.vector(airbnb_data2020$price)
+as.vector(year0$price)
 
 #Heatmap optimized for price of listings
 
-quant_98_price_max = as.numeric(quantile(airbnb_data2020$price, c(0.98)))
+quant_98_price_max = as.numeric(quantile(year0$price, c(0.98)))
 
 map  %>%
   addHeatmap( #Adds a heatmap
-    lng =  airbnb_data2020$longitude,
-    lat =  airbnb_data2020$latitude,
-    intensity = airbnb_data2020$price,
+    lng =  year0$longitude,
+    lat =  year0$latitude,
+    intensity = year0$price,
     blur = 2,
     max = quant_98_price_max,
     cellSize = 3,
@@ -165,13 +166,13 @@ map  %>%
 
 #Heatmap optimized for price of listings
 
-quant_95_review_max = as.numeric(quantile(airbnb_data2020$reviews_this_year, c(0.95), na.rm = T))
+quant_95_review_max = as.numeric(quantile(year0$reviews_this_year, c(0.95), na.rm = T))
 
 map  %>%
   addHeatmap( #Adds a heatmap
-    lng =  airbnb_data2020$longitude,
-    lat =  airbnb_data2020$latitude,
-    intensity = airbnb_data2020$reviews_this_year,
+    lng =  year0$longitude,
+    lat =  year0$latitude,
+    intensity = year0$reviews_this_year,
     blur = 2,
     max = quant_95_review_max,
     cellSize = 2,
@@ -187,7 +188,7 @@ map  %>%
 
 #Organize the data
 
-treemap_data1 = airbnb_data2020 %>% 
+treemap_data1 = year0 %>% 
   group_by(neighbourhood, neighbourhood_group) %>% 
   summarize(listing_days = sum(availability_365),
             avg_price = mean(price))
@@ -212,7 +213,7 @@ ggplot(treemap_data1, aes(area = listing_days, fill = avg_price,
 
 #Organize the data
 
-treemap_data2 = airbnb_data2020 %>% 
+treemap_data2 = year0 %>% 
   group_by(neighbourhood, neighbourhood_group) %>% 
   summarize(market_size = sum(availability_by_price),
             avg_price = mean(price))
@@ -237,7 +238,7 @@ ggplot(treemap_data2, aes(area = market_size, fill = avg_price,
 
 #Organize the data
 
-treemap_data3 = airbnb_data2020 %>% 
+treemap_data3 = year0 %>% 
   group_by(neighbourhood, neighbourhood_group) %>% 
   summarize(market_size = sum(availability_by_price),
             total_listingdays = sum(availability_365),
@@ -269,16 +270,16 @@ ggplot(treemap_data3, aes(area = market_size,
 
 #Creating the table needed for the scatterplot
 
-total_market_size_2020 = sum(airbnb_data2020$availability_by_price)
+total_market_size = sum(year0$availability_by_price)
 market_size_filter = 1000000
 
-scatter_plot_data = airbnb_data2020 %>% 
+scatter_plot_data = year0 %>% 
   group_by(neighbourhood) %>%
   summarize(market_size = sum(availability_by_price),
             total_listingdays = sum(availability_365),
             total_reviews = sum(reviews_this_year),
             reviews_per_listingdays = total_reviews/total_listingdays,
-            market_share = market_size / total_market_size_2020) %>% 
+            market_share = market_size / total_market_size) %>% 
   mutate(market_share = as.numeric(format(round(market_share, 4), nsmall = 2))) %>% 
   filter(market_size>market_size_filter) %>%
   top_n(n = 15, wt = reviews_per_listingdays) %>% 
