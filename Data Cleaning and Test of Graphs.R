@@ -119,6 +119,16 @@ airbnb_data2018 = market_size_func(airbnb_data2018)
 airbnb_data2019 = market_size_func(airbnb_data2019)
 airbnb_data2020 = market_size_func(airbnb_data2020)
 
+#Save dataframes that will be used in Shiny App.
+
+save(airbnb_data, file = 'airbnb_data')
+save(airbnb_data2020, file = 'airbnb_data2020')
+save(airbnb_data2019, file = 'airbnb_data2019')
+save(airbnb_data2018, file = 'airbnb_data2018')
+save(airbnb_data2017, file = 'airbnb_data2017')
+save(airbnb_data2016, file = 'airbnb_data2016')
+save(airbnb_data2015, file = 'airbnb_data2015')
+
 ##############################################
 #1 Map with options to see density (heat map) based number of listings, 
 #price per night, and reviews per month. Putting a max value on the price
