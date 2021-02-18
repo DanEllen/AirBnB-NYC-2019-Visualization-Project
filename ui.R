@@ -33,47 +33,59 @@ sidebar = dashboardSidebar(
 ## 3. Body ------------------------------
 
 dashbody = dashboardBody(
+  
   tabItems(
     
     # First tab content
     tabItem(tabName = "about",
             fluidRow(
-              box(plotOutput("plot1", height = 250)),
-              
-              box(
-                title = "Controls",
-                sliderInput("slider", "Number of observations:", 1, 100, 50)
-              )
             )
     ),
     
     # Second tab content
     tabItem(tabName = "timeseries",
-            h2("Time Series Analysis",
-               fluidRow(
-                 br(),
-                 tabBox(
-                   title = "First tabBox",
-                   # The id lets us use input$tabset1 on the server to find the current tab
-                   id = "tabset1",
-                   height = "1000px",
-                   width = "1000px",
-                   tabPanel("Tab1", 
-                            box(plotOutput("plot1")),
-                            
-                            box(
-                              "Box content here",
-                              br(),
-                              "More box content",
-                              sliderInput("slider", "Slider input:", 1, 100, 50),
-                              textInput("text", "Text input:"))
-                            ),
-                   tabPanel("Tab2", "Tab content 2")
-                 )
-               ))), 
+            h1("Time Series Analysis",
+               )), 
     # Third tab content
     tabItem(tabName = "snapshot",
-            h2("Widgets tab content")
+            h2("Yearly Snapshot"),
+            #User input to select the year for the snapshot
+            column(2,
+                   selectInput(
+                     inputId = "year",
+                     label = h3("Select Year"),
+                     choices = c(
+                       "2020",
+                       "2019"
+                       # "Choice 3" = 3,
+                       # "Choice 3" = 3,
+                       # "Choice 3" = 3,
+                       # "Choice 3" = 3
+                     ),
+                     selected = 1
+                   )), 
+            fluidRow(
+              br(),
+              tabBox(
+                title = "First tabBox",
+                # The id lets us use input$tabset1 on the server to find the current tab
+                id = "tabset1",
+                height = "5000px",
+                width = "1000px",
+                tabPanel("Heatmaps", 
+                         h3("Heatmap of Number of Listings"),
+                         br(),
+                         box(leafletOutput("heatmap_listings"),
+                             width = "1000px"),
+                         br(),
+                         h3("Heatmap of Prices"),
+                         br(),
+                         box(leafletOutput("lol"),
+                             width = "1000px")
+                ),
+                tabPanel("Tab2", "Tab content 2")
+              )
+            )
     ),
     # Fourth tab content
     tabItem(tabName = "share",
