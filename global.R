@@ -5,11 +5,5 @@ setwd("C:/Users/Daniel/Dropbox/Data Science/NYC DSA/R/Exploratory Visualization 
 #Loading the necesary data frames
 
 load('airbnb_data')
-load('airbnb_data2020')
-load('airbnb_data2019')
-load('airbnb_data2018')
-load('airbnb_data2017')
-load('airbnb_data2016')
-load('airbnb_data2015')
 
 #
