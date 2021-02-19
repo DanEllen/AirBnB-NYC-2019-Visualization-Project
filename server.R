@@ -3,7 +3,7 @@ server <- function(input, output) {
 
 #Time series graphs --------------------
   
-#Bar graph of market size by neighborhood_group over time
+#Bar graph of market size by neighborhood_group over time----------
   
 #Organizing the data  
   
@@ -29,15 +29,15 @@ server <- function(input, output) {
       scale_fill_brewer(palette="Reds") #Colors for neighbourhood group
   })
 
-#Line graph of average availability, average price, and number of listings
-#over time (Maybe do facet wrap??)
+#Line graph of average availability, average price, and number of listings---------
+#over time
 
 #Organizing the data  
   
   data_frame0 = airbnb_data %>% 
     group_by(year) %>% 
     summarize(avg_avail = mean(availability_365),
-              avg_price = mean(price),
+              avg_price = weighted.mean(price, availability_365),
               listings = n())
   
 #Plotting the graph
@@ -69,7 +69,7 @@ server <- function(input, output) {
                                   "Listings" = "red2"))
   })
   
-#Bar graph of total reviews by neighborhood_group over time
+#Bar graph of total reviews by neighborhood_group over time-----------
   
 #Organizing the data
   
@@ -97,7 +97,7 @@ server <- function(input, output) {
     scale_fill_brewer(palette="Reds") #Colors for neighbourhood group
   })
   
-#Line graph of avg Reviews per Listing Days total and per neighbourhood_group
+#Line graph of avg Reviews per Listing Days total and per neighbourhood_group------------
 #over time
   
 #Organizing the data
@@ -128,7 +128,7 @@ server <- function(input, output) {
          color = 'Neighbourhood')
   })
   
-#Line graph of average price total and per neighborhood_group over time
+#Line graph of average price total and per neighborhood_group over time--------------
   
 #Organizing the data
   
@@ -156,7 +156,7 @@ server <- function(input, output) {
          color = 'Neighbourhood')
   })
   
-#Bar graph filled of market size composition by room_type over time
+#Bar graph filled of market size composition by room_type over time------------
   
 #Organizing the data
   
@@ -184,16 +184,121 @@ server <- function(input, output) {
   
 #Snapshot graphs -----------------------
   
-#Year for snapshot
-  
+#Year for snapshot reactive function
+
   year0 = reactive({airbnb_data %>%
       filter(year == input$year)})
   
-#Load Leaflet graph
+#Info for value boxes--------------
+
+#listings box  
   
-  #map = leaflet(data = year0()) %>% addProviderTiles(providers$CartoDB.Voyager)
+  listings0 = reactive({
+    airbnb_data %>% 
+      filter(year == input$year) %>% 
+      summarize(listings = n())
+  })
   
-#Output for heatmap of listings--------------
+  output$listings <- renderValueBox({
+    valueBox(
+      paste0(format(listings0()$listings,big.mark=",",scientific=FALSE), ""), "Listings", icon = icon("list"),
+      color = "purple"
+    )
+  })
+  
+#listing days box  
+  
+  listings1 = reactive({
+    airbnb_data %>% 
+      filter(year == input$year) %>% 
+      summarize(listings_days = sum(availability_365))
+  })
+  
+  output$listing_days <- renderValueBox({
+    valueBox(
+      #paste0(format(listings1()$listings_days,big.mark=",",scientific=FALSE), ""),
+      paste0(paste(format(round(listings1()$listings_days / 1e6, 2), trim = TRUE), "Million")),
+      "Listings Days",
+      icon = icon("list"),
+      color = "purple"
+    )
+  })
+  
+#avg_price box  
+  
+  listings2 = reactive({
+    airbnb_data %>% 
+      filter(year == input$year) %>% 
+      summarize(avg_price = weighted.mean(price, availability_365))
+  })
+  
+  output$avg_price <- renderValueBox({
+    valueBox(
+      #paste0(format(listings1()$listings_days,big.mark=",",scientific=FALSE), ""),
+      paste0(paste(format(round(listings2()$avg_price, 0), trim = TRUE), "$")),
+      "Avg. Price per Night",
+      icon = icon("list"),
+      color = "purple"
+    )
+  })
+  
+#avg_avail box  
+  
+  listings3 = reactive({
+    airbnb_data %>% 
+      filter(year == input$year) %>% 
+      summarize(avg_avail = mean(availability_365))
+  })
+  
+  output$avg_avail <- renderValueBox({
+    valueBox(
+      #paste0(format(listings1()$listings_days,big.mark=",",scientific=FALSE), ""),
+      paste0(paste(format(round(listings3()$avg_avail, 0), trim = TRUE), "Days")),
+      "Avg. Availabilty per Year",
+      icon = icon("list"),
+      color = "purple"
+    )
+  })
+  
+#reviews box  
+  
+  listings4 = reactive({
+    airbnb_data %>% 
+      filter(year == input$year) %>% 
+      summarize(reviews = sum(reviews_this_year))
+  })
+  
+  output$reviews <- renderValueBox({
+    valueBox(
+      #paste0(format(listings1()$listings_days,big.mark=",",scientific=FALSE), ""),
+      paste0(paste(format(round(listings4()$reviews/ 1e3, 0), trim = TRUE), "k")),
+      "Number of Reviews in Thousands",
+      icon = icon("list"),
+      color = "purple"
+    )
+  })
+  
+#reviews_listingdays box  
+  
+  listings5 = reactive({
+    airbnb_data %>% 
+      filter(year == input$year) %>% 
+      summarize(total_listingdays = sum(availability_365),
+                total_reviews = sum(reviews_this_year),
+                reviews_listingdays = total_reviews/total_listingdays)
+  })
+  
+  output$reviews_listingdays <- renderValueBox({
+    valueBox(
+      #paste0(format(listings1()$listings_days,big.mark=",",scientific=FALSE), ""),
+      paste0(paste(format(round(listings5()$reviews_listingdays, 3), trim = TRUE), "")),
+      "Reviews per Listing Days",
+      icon = icon("list"),
+      color = "purple"
+    )
+  })
+  
+#Heatmap of listings--------------
   
   output$heatmap_listings <- renderLeaflet({
     leaflet(data = year0()) %>%
@@ -213,4 +318,69 @@ server <- function(input, output) {
         clusterOptions = markerClusterOptions()
       )
   })
+
+#Heatmap of price per night--------------    
+  
+  output$heatmap_price <- renderLeaflet({
+    leaflet(data = year0()) %>%
+      addProviderTiles(providers$CartoDB.Voyager) %>%
+      addHeatmap(
+        #Adds a heatmap
+        lng =  year0()$longitude,
+        lat =  year0()$latitude,
+        intensity = year0()$price,
+        blur = 2,
+        max = as.numeric(quantile(year0()$price, c(0.98))),
+        cellSize = 3,
+        radius = 2
+    )
+  })
+
+#Heatmap of reviews--------------    
+  
+  output$heatmap_reviews <- renderLeaflet({
+    leaflet(data = year0()) %>%
+      addProviderTiles(providers$CartoDB.Voyager) %>%
+      addHeatmap( #Adds a heatmap
+        lng =  year0()$longitude,
+        lat =  year0()$latitude,
+        intensity = year0()$reviews_this_year,
+        blur = 2,
+        max = as.numeric(quantile(year0()$reviews_this_year, c(0.95), na.rm = T)),
+        cellSize = 2,
+        radius = 2
+      )
+  })  
+  
+#Treemap graph for number of listing comparing neighborhood_group and --------
+#neighboorhood and price per night
+  
+  #Organize the data
+  
+  treemap_data1 = reactive({airbnb_data %>%
+      filter(year == input$year) %>% 
+      group_by(neighbourhood, neighbourhood_group) %>%
+      summarize(listing_days = sum(availability_365),
+                avg_price = mean(price))
+  })
+  
+  #Plot the graph
+  
+  output$treemap1 = renderPlot({
+  ggplot(treemap_data1(), aes(area = listing_days, fill = avg_price,
+                            label = neighbourhood,
+                            subgroup = neighbourhood_group)) +
+    geom_treemap() +
+    geom_treemap_subgroup_border() +
+    geom_treemap_subgroup_text(place = "centre", grow = T, alpha = 0.6, colour =
+                                 "black", fontface = "italic", min.size = 0) +
+    geom_treemap_text(colour = "grey81", place = "topleft", reflow = T) +
+    scale_fill_gradient2(low="white", mid="yellow", high="red", midpoint = 170,
+                         limits = c(80, 400), oob = scales::squish) +
+    theme(text = element_text(size = 20 ),
+          legend.text=element_text(size=22)) +
+    labs(fill = "Price $\nper Night")
+    })
+  
 }
+

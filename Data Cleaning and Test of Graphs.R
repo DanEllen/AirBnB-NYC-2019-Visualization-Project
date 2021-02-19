@@ -170,13 +170,13 @@ map  %>%
     lng =  year0$longitude,
     lat =  year0$latitude,
     intensity = year0$price,
-    blur = 2,
+    blur = 4,
     max = quant_98_price_max,
-    cellSize = 3,
-    radius = 2
+    cellSize = 1,
+    radius = 1
   )
 
-#Heatmap optimized for price of listings
+#Heatmap optimized for reviews
 
 quant_95_review_max = as.numeric(quantile(year0$reviews_this_year, c(0.95), na.rm = T))
 
@@ -350,7 +350,7 @@ ggplot(market_size_years, aes(x = year, y = market_size)) +
 data_frame0 = airbnb_data %>% 
   group_by(year) %>% 
   summarize(avg_avail = mean(availability_365),
-            avg_price = mean(price),
+            avg_price = weighted.mean(price, availability_365),
             listings = n())
 
 ggplot(data_frame0, aes(x = year)) +

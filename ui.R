@@ -36,13 +36,13 @@ dashbody = dashboardBody(
   
   tabItems(
     
-    # First tab content-----------
+    # About tab-----------
     tabItem(tabName = "about",
             fluidRow(
             )
     ), 
     
-    # Second tab content-----------
+    # Timeseries tab-----------
     tabItem(tabName = "timeseries",
             h2("Time Series Analysis"),
             box(width = "1000px",
@@ -87,7 +87,7 @@ dashbody = dashboardBody(
                 br(),
                 plotOutput("market_byroomtype_byyears"))
             ), 
-    # Third tab content-------------
+    #Snapshot tab-------------
     tabItem(tabName = "snapshot",
             h2("Yearly Snapshot"),
             #User input to select the year for the snapshot
@@ -109,27 +109,49 @@ dashbody = dashboardBody(
             fluidRow(
               br(),
               tabBox(
-                title = "First tabBox",
                 # The id lets us use input$tabset1 on the server to find the current tab
                 id = "tabset1",
                 height = "5000px",
                 width = "1000px",
+                # General info boxes---------
+                tabPanel("General Info",
+                         br(),
+                         valueBoxOutput("listings"),
+                         valueBoxOutput("listing_days"),
+                         valueBoxOutput("avg_price"),
+                         valueBoxOutput("avg_avail"),
+                         valueBoxOutput("reviews"),
+                         valueBoxOutput("reviews_listingdays")),
+                
+                # Heatmaps--------------
                 tabPanel("Heatmaps", 
                          h3("Heatmap of Number of Listings"),
                          br(),
                          box(leafletOutput("heatmap_listings"),
                              width = "1000px"),
                          br(),
-                         h3("Heatmap of Prices"),
+                         h3("Heatmap of Price per Night"),
                          br(),
-                         box(leafletOutput("lol"),
+                         box(leafletOutput("heatmap_price"),
+                             width = "1000px"),
+                         br(),
+                         h3("Heatmap of Number of Reviews"),
+                         br(),
+                         box(leafletOutput("heatmap_reviews"),
                              width = "1000px")
                 ),
-                tabPanel("Tab2", "Tab content 2")
+                
+                # Treemaps-------------
+                tabPanel("Treemaps",
+                         h3("Treemap: Area is the number listings and heatmap are prices"),
+                         br(),
+                         box(plotOutput("treemap1"),
+                             width = "1000px")
+                )
               )
             )
     ),
-    # Fourth tab content--------------
+    #Share tab--------------
     tabItem(tabName = "share",
             h2("Widgets tab content")
     )
