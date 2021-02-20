@@ -18,7 +18,7 @@ server <- function(input, output) {
       geom_col(aes(fill = reorder(neighbourhood_group, market_size))) + 
       theme(axis.text.x = element_text(angle=0, vjust=0.6),
             panel.background = element_blank(),
-            text = element_text(size = 20 ),
+            text = element_text(size = 22 ),
             legend.text=element_text(size=22)) +
       labs(title="Market Size (Supply) Over Time", 
            subtitle="Divided by Neighbourhoods",
@@ -62,8 +62,9 @@ server <- function(input, output) {
          colour = "Legend") +
     theme(axis.text.x = element_text(angle=0, vjust=0.6),
           panel.background = element_blank(),
-          text = element_text(size = 20 ),
-          legend.text=element_text(size=22)) +
+          text = element_text(size = 22 ),
+          legend.text=element_text(size=22),
+          legend.key = element_blank()) +
     scale_color_manual(values = c("Avg. Availability" = "gold1",
                                   "Avg. Price" = "orange1",
                                   "Listings" = "red2"))
@@ -91,7 +92,7 @@ server <- function(input, output) {
          fill = "Neighbourhood Group") +
     theme(axis.text.x = element_text(angle=0, vjust=0.6),
           panel.background = element_blank(),
-          text = element_text(size = 20 ),
+          text = element_text(size = 22 ),
           legend.text=element_text(size=22)) +
     scale_y_continuous(labels = scales::unit_format(unit = "k", scale = 1e-3)) +
     scale_fill_brewer(palette="Reds") #Colors for neighbourhood group
@@ -119,8 +120,9 @@ server <- function(input, output) {
     scale_color_brewer(palette = "Set1") +
     theme(axis.text.x = element_text(angle=0, vjust=0.6),
           panel.background = element_blank(),
-          text = element_text(size = 20 ),
-          legend.text=element_text(size=22)) +
+          text = element_text(size = 22 ),
+          legend.text=element_text(size=22),
+          legend.key = element_blank()) +
     labs(title = "Reviews per Listing Days Ratio",
          subtitle = 'Over Time by Neighbourhood Group',
          y = 'Reviews Per Listing Days',
@@ -147,8 +149,9 @@ server <- function(input, output) {
     scale_color_brewer(palette = "Set1") +
     theme(axis.text.x = element_text(angle=0, vjust=0.5),
           panel.background = element_blank(),
-          text = element_text(size = 20 ),
-          legend.text=element_text(size=22)) +
+          text = element_text(size = 22 ),
+          legend.text=element_text(size=22),
+          legend.key = element_blank()) +
     labs(title = "Average Price per Night",
          subtitle = 'Over Time by Neighbourhood Group',
          y = 'Avg. Price',
@@ -176,10 +179,10 @@ server <- function(input, output) {
          fill = "Room Type") +
     theme(axis.text.x = element_text(angle=0, vjust=0.6),
           panel.background = element_blank(),
-          text = element_text(size = 20 ),
+          text = element_text(size = 22 ),
           legend.text=element_text(size=22)) +
     scale_y_continuous(labels = scales::percent) +
-    scale_fill_brewer(palette="Spectral") #Colors for neighbourhood group
+    scale_fill_brewer(palette="Reds") #Colors for neighbourhood group
   })
   
 #Snapshot graphs -----------------------
@@ -381,6 +384,125 @@ server <- function(input, output) {
           legend.text=element_text(size=22)) +
     labs(fill = "Price $\nper Night")
     })
+  
+#Treemap graph for market size comparing neighborhood_group and ---------
+#neighboorhood and price per night
+  
+  #Organize the data
+  
+  treemap_data2 = reactive({airbnb_data %>%
+    filter(year == input$year) %>% 
+    group_by(neighbourhood, neighbourhood_group) %>% 
+    summarize(market_size = sum(availability_by_price),
+              avg_price = mean(price))
+  })
+  
+  #Plot the graph
+  
+  output$treemap2 = renderPlot({
+  ggplot(treemap_data2(), aes(area = market_size, fill = avg_price,
+                            label = neighbourhood,
+                            subgroup = neighbourhood_group)) +
+    geom_treemap() +
+    geom_treemap_subgroup_border() +
+    geom_treemap_subgroup_text(place = "centre", grow = T, alpha = 0.6, colour =
+                                 "black", fontface = "italic", min.size = 0) +
+    geom_treemap_text(colour = "grey81", place = "topleft", reflow = T) +
+    scale_fill_gradient2(low="white", mid="yellow", high="red", midpoint = 170,
+                         limits = c(80, 400), oob = scales::squish) +
+    theme(text = element_text(size = 20 ),
+          legend.text=element_text(size=22)) +
+    labs(fill = "Price $\nper Night")
+  })
+  
+  
+#Treemap graph for size of offering (listing by days available by price)-------
+#comparing neighborhood_group, neighboorhood, and avg reviews per month
+  
+  #Organize the data
+  
+  treemap_data3 = reactive({airbnb_data %>%
+    filter(year == input$year) %>% 
+    group_by(neighbourhood, neighbourhood_group) %>% 
+    summarize(market_size = sum(availability_by_price),
+              total_listingdays = sum(availability_365),
+              total_reviews = sum(reviews_this_year),
+              reviews_per_listingdays = total_reviews/total_listingdays)
+  })
+  
+  #Plot the graph
+  
+  output$treemap3 = renderPlot({
+  ggplot(treemap_data3(), aes(area = market_size,
+                            fill = reviews_per_listingdays,
+                            label = neighbourhood,
+                            subgroup = neighbourhood_group)) +
+    geom_treemap() +
+    geom_treemap_subgroup_border() +
+    geom_treemap_subgroup_text(place = "centre", grow = T, alpha = 0.6, colour =
+                                 "black", fontface = "italic", min.size = 0) +
+    geom_treemap_text(colour = "grey81", place = "topleft", reflow = T) +
+    scale_fill_gradient2(low="white", mid="yellow", high="red", 
+                         #midpoint = 0.04,
+                         limits = c(0, 0.2),
+                         oob = scales::squish) +
+    labs(fill = "Reviews \nper Listing\nDays") +
+    theme(legend.position = "right",
+          text = element_text(size = 20),
+          plot.title = element_text(hjust = 0.0),
+          legend.text = element_text(size=22))
+  })
+  
+#Dot plot of neighbourhoods and RPLD ratio for top N neigh and point size ------
+#based on market size.
+  
+  #Creating the table needed for the scatterplot
+  
+  market_size_filter = 1000000
+  
+  
+  dot_plot_data = reactive({airbnb_data %>%
+    filter(year == input$year) %>% 
+    group_by(neighbourhood) %>%
+    summarize(market_size = sum(availability_by_price),
+              total_listingdays = sum(availability_365),
+              total_reviews = sum(reviews_this_year),
+              reviews_per_listingdays = total_reviews/total_listingdays) %>% 
+    filter(market_size>(input$market_size*1e6)) %>%
+    top_n(n = input$topN_neigh, wt = reviews_per_listingdays) %>% 
+    arrange(desc(reviews_per_listingdays))
+  })
+  
+  #Graphing
+  
+  output$topN_neight = renderPlot({
+  ggplot(dot_plot_data(), aes(x = reorder(neighbourhood, reviews_per_listingdays) ,
+                                y = reviews_per_listingdays,
+                                size = market_size)) + 
+    geom_point(col="tomato2")  +
+    geom_segment(aes(x = neighbourhood, 
+                     xend = neighbourhood, 
+                     y = min(reviews_per_listingdays), 
+                     yend = max(reviews_per_listingdays)), 
+                 linetype = "dashed", 
+                 size = 0.1,
+                 alpha = 0.2) +
+    #ylim(-2.5, 2.5) +
+    labs(title="Ratio of Reviews per Listing Days", 
+         subtitle="Top 15 Neighbourhoods",
+         y = "Reviews per Listing Days",
+         size = "Market Size") +  
+    theme(axis.title.y = element_blank(),
+          legend.position = "right",
+          text = element_text(size = 20),
+          legend.text = element_text(size=20),
+          panel.background = element_blank(),
+          legend.box.background = element_blank(),
+          legend.key = element_blank()) +
+    scale_size(labels = scales::unit_format(unit = "M", scale = 1e-6)) +
+    coord_flip()
+  })
+  
   
 }
 

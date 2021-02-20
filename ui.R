@@ -21,7 +21,7 @@ header = dashboardHeader( title = HTML("Airbnb Market NYC"),
 ## 2. Siderbar ------------------------------
 
 sidebar = dashboardSidebar(
-  sidebarMenu(
+  sidebarMenu( 
     menuItem("About", tabName = "about", icon = icon("info-circle")),
     menuItem("Time series", tabName = "timeseries", icon = icon("chart-line")),
     menuItem("Snapshop", tabName = "snapshot", icon = icon("chart-bar")),
@@ -143,10 +143,42 @@ dashbody = dashboardBody(
                 
                 # Treemaps-------------
                 tabPanel("Treemaps",
-                         h3("Treemap: Area is the number listings and heatmap are prices"),
+                         h3("The Area is the Number Listings and Heatmap are Prices"),
                          br(),
                          box(plotOutput("treemap1"),
+                             width = "1000px"),
+                         h3("The Area is the Market Size and Heatmap are Prices"),
+                         br(),
+                         box(plotOutput("treemap2"),
+                             width = "1000px"),
+                         h3("The Area is the Market Size and Heatmap is Reviews per Listing Days"),
+                         br(),
+                         box(plotOutput("treemap3"),
                              width = "1000px")
+                ),
+                
+                #Dot Plot--------------
+                tabPanel("Dot Plot",
+                         box(plotOutput("topN_neight")),
+                         
+                         box(
+                           h3("Select Values to Plot"),
+                           h4("Use the slider to select how many how 
+                              many of the top neighbourhoods by reviews
+                              per listing days ratio to show."),
+                           sliderInput("topN_neigh", label = NULL, 5, 25, 15),
+                           h4("Enter the minimum market size of the
+                              neighbourhood to be considered in the graph."),
+                           numericInput("market_size",
+                                        h3("In USD$ Millions"),
+                                        value = 1,
+                                        min = 0,
+                                        step = 0.1,
+                                        ),
+                           #Alters the size of numericInput box and text using CSS
+                           tags$head(tags$style(HTML('#market_size{height: 50px}
+                            #market_size{font-size: 22px}')))
+                         )
                 )
               )
             )

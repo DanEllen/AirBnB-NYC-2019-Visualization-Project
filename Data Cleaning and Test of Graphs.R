@@ -285,7 +285,7 @@ ggplot(treemap_data3, aes(area = market_size,
 total_market_size = sum(year0$availability_by_price)
 market_size_filter = 1000000
 
-scatter_plot_data = year0 %>% 
+dot_plot_data = year0 %>% 
   group_by(neighbourhood) %>%
   summarize(market_size = sum(availability_by_price),
             total_listingdays = sum(availability_365),
@@ -299,9 +299,8 @@ scatter_plot_data = year0 %>%
 
 #Graphing
 
-ggplot(scatter_plot_data, aes(x = reorder(neighbourhood, reviews_per_listingdays) ,
+ggplot(dot_plot_data, aes(x = reorder(neighbourhood, reviews_per_listingdays) ,
                               y = reviews_per_listingdays,
-                              label = scales::percent(market_share),
                               size = market_size)) + 
   geom_point(col="tomato2")  +
   geom_segment(aes(x = neighbourhood, 
