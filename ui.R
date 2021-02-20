@@ -17,9 +17,18 @@ library(lubridate) #Allows easy extraction of day, month, year
 
 header = dashboardHeader( title = HTML("Airbnb Market NYC"),
                           titleWidth = 230,
-                          disable = FALSE)
-header$children[[2]]$children <-  tags$a(href='http://mycompanyishere.com',
-                                         tags$img(src='logo.png',height='60',width='200'))
+                          disable = FALSE,
+                          tags$li(
+                            a(
+                              strong("About Me"),
+                              height = 40,
+                              href = "https://www.linkedin.com/in/daniel-ellenbogen-2130a021/",
+                              title = "",
+                              target = "_blank"
+                            ),
+                            class = "dropdown"
+                          ))
+                        
 
 ## 2. Siderbar ------------------------------
 
@@ -61,7 +70,7 @@ dashbody = dashboardBody(
             h2("About the data:"),
             HTML("<h3><p>The data is sourced from <a href='//insideairbnb.com' target='_blank'>insideairbnb.com</a>, an independent non-commercial project that gathers publicly available Airbnb information.</p></h1>"),
             h2("About the creator:"),
-            HTML("<h3><p>This data exploration and visualization dashboard has been created by <a href='https://www.linkedin.com/in/daniel-ellenbogen-2130a021/' target='_blank'>Daniel Ellenbogen</a>. I'm passionate about data and its potential impacts so please feel free to connect with me in <a href='https://www.linkedin.com/in/daniel-ellenbogen-2130a021/' target='_blank'>Linkedin</a> to discuss any topic related to that or in case you want to be able to stay in touch for future discussions.</p></h1>"),
+            HTML("<h3><p>I'm passionate about data and its potential impacts so please feel free to connect with me in <a href='https://www.linkedin.com/in/daniel-ellenbogen-2130a021/' target='_blank'>Linkedin</a> to discuss any topic related to that or in case you want to be able to stay in touch for future discussions.</p></h1>"),
             h2("Further analysis:"),
             h3("Some further research that could bring addition insights are:"),
             br(),
