@@ -222,7 +222,7 @@ server <- function(input, output) {
       #paste0(format(listings1()$listings_days,big.mark=",",scientific=FALSE), ""),
       paste0(paste(format(round(listings1()$listings_days / 1e6, 2), trim = TRUE), "Million")),
       "Listings Days",
-      icon = icon("list"),
+      icon = icon("calendar-day"),
       color = "purple"
     )
   })
@@ -240,7 +240,7 @@ server <- function(input, output) {
       #paste0(format(listings1()$listings_days,big.mark=",",scientific=FALSE), ""),
       paste0(paste(format(round(listings2()$avg_price, 0), trim = TRUE), "$")),
       "Avg. Price per Night",
-      icon = icon("list"),
+      icon = icon("hand-holding-usd"),
       color = "purple"
     )
   })
@@ -258,7 +258,7 @@ server <- function(input, output) {
       #paste0(format(listings1()$listings_days,big.mark=",",scientific=FALSE), ""),
       paste0(paste(format(round(listings3()$avg_avail, 0), trim = TRUE), "Days")),
       "Avg. Availabilty per Year",
-      icon = icon("list"),
+      icon = icon("calendar-check"),
       color = "purple"
     )
   })
@@ -276,7 +276,7 @@ server <- function(input, output) {
       #paste0(format(listings1()$listings_days,big.mark=",",scientific=FALSE), ""),
       paste0(paste(format(round(listings4()$reviews/ 1e3, 0), trim = TRUE), "k")),
       "Number of Reviews in Thousands",
-      icon = icon("list"),
+      icon = icon("gavel"),
       color = "purple"
     )
   })
@@ -296,7 +296,7 @@ server <- function(input, output) {
       #paste0(format(listings1()$listings_days,big.mark=",",scientific=FALSE), ""),
       paste0(paste(format(round(listings5()$reviews_listingdays, 3), trim = TRUE), "")),
       "Reviews per Listing Days",
-      icon = icon("list"),
+      icon = icon("signal"),
       color = "purple"
     )
   })
@@ -503,6 +503,30 @@ server <- function(input, output) {
     coord_flip()
   })
   
+#Data---------------
   
+  datasetInput <- reactive({
+    airbnb_data %>% 
+      filter(year == input$dataset | input$dataset == "All Years") %>% 
+      group_by(neighbourhood, neighbourhood_group) %>% 
+      summarize(number_of_listings = n(),
+                reviews = sum(reviews_this_year),
+                avg_availability = mean(availability_365),
+                avg_price = weighted.mean(price, availability_365))
+  })
+
+  output$table <- renderTable({
+    datasetInput()
+  })
+  
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste(input$dataset, ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(datasetInput(), file, row.names = TRUE)
+    }
+  )
+
 }
 

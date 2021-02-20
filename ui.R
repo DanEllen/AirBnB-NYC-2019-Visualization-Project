@@ -15,17 +15,21 @@ library(lubridate) #Allows easy extraction of day, month, year
 
 ## 1. Header -------------------------------
 
-header = dashboardHeader( title = HTML("Airbnb Market NYC"), 
+header = dashboardHeader( title = HTML("Airbnb Market NYC"),
+                          titleWidth = 230,
                           disable = FALSE)
+header$children[[2]]$children <-  tags$a(href='http://mycompanyishere.com',
+                                         tags$img(src='logo.png',height='60',width='200'))
 
 ## 2. Siderbar ------------------------------
 
 sidebar = dashboardSidebar(
+  width = 170,
   sidebarMenu( 
     menuItem("About", tabName = "about", icon = icon("info-circle")),
     menuItem("Time series", tabName = "timeseries", icon = icon("chart-line")),
     menuItem("Snapshop", tabName = "snapshot", icon = icon("chart-bar")),
-    menuItem("Share", tabName = "share", icon = icon("share-alt"))
+    menuItem("Data", tabName = "data", icon = icon("database"))
     
   )
 )
@@ -43,7 +47,7 @@ dashbody = dashboardBody(
             h3("The objective is to understand the Airbnb market in NYC in order to make educated investment decisions.
             \nSome of the key questions being asked are:"),
             br(),
-            tags$ol(style = "font-size:22px;",
+            tags$ol(style = "font-size:20px;",
               tags$li("How has the market evolved over time, as this is a novel business model, how have characteristics in the offering changed?"), 
               br(),
               tags$li("What has happened to the supply and demand side of the equation in this market and what are the underlying factors impacting those changes?"), 
@@ -61,7 +65,7 @@ dashbody = dashboardBody(
             h2("Further analysis:"),
             h3("Some further research that could bring addition insights are:"),
             br(),
-            tags$ol(style = "font-size:22px;",
+            tags$ol(style = "font-size:20px;",
                     tags$li("Analysis of individual reviews to understand the factors that impact the value perceived by the customers in order to tailor offerings that generate the most value."), 
                     br(),
                     tags$li("Analysis of the elasticity of the price in the market to determine if there are a subset of assets where value could be generated through acquisition and optimization of the pricing strategy."), 
@@ -214,15 +218,25 @@ dashbody = dashboardBody(
               )
             )
     ),
-    #Share tab--------------
-    tabItem(tabName = "share",
-            h2("Widgets tab content")
+    #Raw data tab--------------
+    tabItem(tabName = "data",
+            h2("Choose Year to View or Download Data"),
+            selectInput("dataset", NULL,
+                        choices = c("All Years",
+                                    2020,
+                                    2019,
+                                    2017,
+                                    2016,
+                                    2015)),
+            downloadButton("downloadData", "Download"),
+            tableOutput("table")
     )
   )
 )
 
 ##4. Putting UI together --------------------
 ui <- dashboardPage(
+  skin = "red",
   header,
   sidebar,
   dashbody
