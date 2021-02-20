@@ -38,7 +38,38 @@ dashbody = dashboardBody(
     
     # About tab-----------
     tabItem(tabName = "about",
-            fluidRow(
+            fluidPage(
+            h2("About this project:"),
+            h3("The objective is to understand the Airbnb market in NYC in order to make educated investment decisions.
+            \nSome of the key questions being asked are:"),
+            br(),
+            tags$ol(style = "font-size:22px;",
+              tags$li("How has the market evolved over time, as this is a novel business model, how have characteristics in the offering changed?"), 
+              br(),
+              tags$li("What has happened to the supply and demand side of the equation in this market and what are the underlying factors impacting those changes?"), 
+              br(),
+              tags$li("What has been the impact of COVID-19 in the market, who has benefited and where is the impact more pronounced?"),
+              br(),
+              tags$li("How is the market composed in terms of size, price, demand, supply and other characteristics?"),
+              br(),
+              tags$li("Where are the most interesting investment opportunities with regards to the largest mismatch between supply and demand that could lead to higher occupancy rates and price per night increases?")
+            ),
+            h2("About the data:"),
+            HTML("<h3><p>The data is sourced from <a href='//insideairbnb.com' target='_blank'>insideairbnb.com</a>, an independent non-commercial project that gathers publicly available Airbnb information.</p></h1>"),
+            h2("About the creator:"),
+            HTML("<h3><p>This data exploration and visualization dashboard has been created by <a href='https://www.linkedin.com/in/daniel-ellenbogen-2130a021/' target='_blank'>Daniel Ellenbogen</a>. I'm passionate about data and its potential impacts so please feel free to connect with me in <a href='https://www.linkedin.com/in/daniel-ellenbogen-2130a021/' target='_blank'>Linkedin</a> to discuss any topic related to that or in case you want to be able to stay in touch for future discussions.</p></h1>"),
+            h2("Further analysis:"),
+            h3("Some further research that could bring addition insights are:"),
+            br(),
+            tags$ol(style = "font-size:22px;",
+                    tags$li("Analysis of individual reviews to understand the factors that impact the value perceived by the customers in order to tailor offerings that generate the most value."), 
+                    br(),
+                    tags$li("Analysis of the elasticity of the price in the market to determine if there are a subset of assets where value could be generated through acquisition and optimization of the pricing strategy."), 
+                    br(),
+                    tags$li("Combining this data with available real estate data on land value to determine if this data can help predict increases in value in the real estate market."),
+                    br(),
+                    tags$li("Comparing this data with hotel information to gather insights into how the traditional hospitality industry could better compete by tailoring its offer to the needs of Airbnb customers."),
+            )
             )
     ), 
     
