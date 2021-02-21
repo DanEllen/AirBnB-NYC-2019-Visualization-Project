@@ -5,6 +5,6 @@ account: danellen
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3671018
-bundleId: 4249953
+bundleId: 4252470
 url: https://danellen.shinyapps.io/airbnb-nyc-2019-visualization-project/
-when: 1613861476.85627
+when: 1613920234.52868

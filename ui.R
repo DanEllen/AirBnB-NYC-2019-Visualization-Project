@@ -68,7 +68,7 @@ dashbody = dashboardBody(
               tags$li("Where are the most interesting investment opportunities with regards to the largest mismatch between supply and demand that could lead to higher occupancy rates and price per night increases?")
             ),
             h2("About the data:"),
-            HTML("<h3><p>The data is sourced from <a href='//insideairbnb.com' target='_blank'>insideairbnb.com</a>, an independent non-commercial project that gathers publicly available Airbnb information.</p></h1>"),
+            HTML("<h3><p>The data is sourced from <a href='http://insideairbnb.com/' target='_blank'>insideairbnb.com</a>, an independent non-commercial project that gathers publicly available Airbnb information.</p></h1>"),
             h2("About the creator:"),
             HTML("<h3><p>I'm passionate about data and its potential impacts so please feel free to connect with me in <a href='https://www.linkedin.com/in/daniel-ellenbogen-2130a021/' target='_blank'>Linkedin</a> to discuss any topic related to that or in case you want to be able to stay in touch for future discussions.</p></h1>"),
             h2("Further analysis:"),
@@ -99,7 +99,7 @@ dashbody = dashboardBody(
             br(),
             box(width = "1000px",
                 h3("Comparison of variables that affect Market Size,
-                   all of them are is positively correlated to the Market Size.
+                   all of them are positively correlated to the Market Size.
                    \'Avg. Availability\' is how many days out of the year
                    the listing was available."),
                 br(),
