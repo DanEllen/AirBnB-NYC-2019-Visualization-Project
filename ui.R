@@ -75,6 +75,8 @@ dashbody = dashboardBody(
             h3("Some further research that could bring addition insights are:"),
             br(),
             tags$ol(style = "font-size:20px;",
+                    tags$li("Analysis of real estate prices to determine if an adequate ROI can be achieved for investments in properties that will be used as Airbnb rentals or similar."),
+                    br(),
                     tags$li("Analysis of individual reviews to understand the factors that impact the value perceived by the customers in order to tailor offerings that generate the most value."), 
                     br(),
                     tags$li("Analysis of the elasticity of the price in the market to determine if there are a subset of assets where value could be generated through acquisition and optimization of the pricing strategy."), 

@@ -467,3 +467,41 @@ ggplot(data_frame4, aes(x = year, y = avg_price,
        x = 'Year',
        color = 'Neighbourhood')+
   theme_classic()
+
+
+#Calculations------------
+
+#Change in Market size from 2019 to 2020
+
+market_size = airbnb_data %>% 
+  filter(year == 2020 | year == 2019) %>% 
+  group_by(year) %>% 
+  summarize(market_size = sum(availability_by_price))
+
+market_size$market_size[2] / market_size$market_size[1] - 1
+
+#Change in reviews from 2019 to 2020
+
+reviews = airbnb_data %>% 
+  filter(year == 2020 | year == 2019) %>% 
+  group_by(year) %>% 
+  summarize(reviews = sum(reviews_this_year))
+
+reviews$reviews[2] / reviews$reviews[1] - 1
+
+#Change in price per night in Manhattan from 2019 to 2020
+
+price = airbnb_data %>% 
+  filter(year == 2020 | year == 2019, neighbourhood_group == "Manhattan") %>% 
+  group_by(year, neighbourhood_group) %>% 
+  summarize(price = mean(price))
+
+price$price[2] / price$price[1] - 1
+
+#Distribuition in 2020 by room type
+
+room_type = airbnb_data %>% 
+  filter(year == 2020) %>% 
+  group_by(room_type) %>% 
+  summarize(availability_by_price = sum(availability_by_price)) %>% 
+  mutate(dist = availability_by_price/sum(availability_by_price))
