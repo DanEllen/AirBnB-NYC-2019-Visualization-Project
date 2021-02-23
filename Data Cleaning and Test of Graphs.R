@@ -1,5 +1,4 @@
-##############################################
-#About libraries used
+#About libraries used------------
 
 library(leaflet)#Leaflet is one of the most popular open-source JavaScript libraries for 
 #interactive maps. This leaflet R package makes it easy to integrate and control
@@ -12,7 +11,9 @@ library(scales) #Allows easily labeling of axis. Example:
 #scale_x_continuous(labels = unit_format(unit = "K", scale = 1e-3))
 library(lubridate) #Allows easy extraction of day, month, year
 
-##Load workspace
+
+#Data Manipulation-------------
+#Load workspace
 
 load ("C:/Users/Daniel/Dropbox/Data Science/NYC DSA/R/Exploratory Visualization and Shiny Project/AirBnB-NYC-2019-Visualization-Project/.RData")
 
@@ -131,7 +132,7 @@ save(airbnb_data2017, file = 'airbnb_data2017')
 save(airbnb_data2016, file = 'airbnb_data2016')
 save(airbnb_data2015, file = 'airbnb_data2015')
 
-##############################################
+#Yearly snapshot graphs -------------
 #1 Map with options to see density (heat map) based number of listings, 
 #price per night, and reviews per month. Putting a max value on the price
 #per night as there are some outliers that will skew the visualization. 
@@ -191,7 +192,6 @@ map  %>%
     radius = 2
   )
 
-##############################################
 #2.	Graphs for composition by neighborhood comparing number of listings, 
 #price per night, and reviews per month. 
 
@@ -320,6 +320,8 @@ ggplot(dot_plot_data, aes(x = reorder(neighbourhood, reviews_per_listingdays) ,
   scale_size(labels = scales::unit_format(unit = "M", scale = 1e-6)) +
   coord_flip()
 
+
+#Time series graphs-------------
 #Bar graph of market size by neighborhood_group over time
 
 #Getting the dataframe for the graph
